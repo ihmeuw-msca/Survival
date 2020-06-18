@@ -55,7 +55,7 @@ class MIRModel:
 
         assert (self.cases >= self.deaths).all()
 
-        assert self.other_mortality == self.other_mortality
+        assert self.other_mortality.size == self.num_points
         assert (self.other_mortality >= 0).all()
         assert (self.other_mortality <= 1).all()
 
