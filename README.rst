@@ -14,7 +14,7 @@ To install, simply clone the repository and install,
 
 .. code-block:: shell
 
-   git clone https://github.com/ihmeuw-msca/Survival.git
+   git clone https://github.com/ihmeuw-msca/Survival.git && cd Survival
    python setup.py install
 
 
