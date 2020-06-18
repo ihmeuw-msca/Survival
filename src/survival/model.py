@@ -66,8 +66,11 @@ class MIRModel:
         """Compute the probability of death from the disease.
         """
         if np.isinf(self.disease_period):
-            self.excess_mortality = self.other_mortality * \
+            excess_mortality = self.other_mortality * \
                 self.cases/(self.cases - self.deaths)
+            self.excess_mortality = np.maximum(
+                0, np.minimum(1 - self.other_mortality, excess_mortality))
+
         else:
             for i in range(self.num_points):
                 if self.deaths[i]/self.cases[i] >= 1 - self.other_mortality[i]:
