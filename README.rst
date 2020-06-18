@@ -8,7 +8,8 @@ This repository is created for the applications from cancer team.
 Install
 -------
 The package require ``python=3.7`` and preliminary packages, Numpy, Scipy,
-Pandas and Pytest.
+and Pytest. If want to run the `examples <https://github.com/ihmeuw-msca/Survival/blob/master/examples>`_
+Pandas, Jupyter and Maplotlib are required.
 
 To install, simply clone the repository and install,
 
@@ -38,3 +39,5 @@ For the result, ``survival_rate`` is a dictionary with ``survival_rate['abs']``
 store the absolute survival rate and ``survival_rate['rel']`` store the relative
 survival rate. And the argument ``num_years=5`` indicates that we compute the
 5 years survival rate.
+
+For more detailed examples please check `examples <https://github.com/ihmeuw-msca/Survival/blob/master/examples>`_.

@@ -104,8 +104,8 @@ class MIRModel:
             self.compute_excess_mortality()
 
         prob_death_per_year = self.excess_mortality + self.other_mortality
-        abs_survival_rate = 1 - prob_death_per_year**num_years
-        ref_survival_rate = 1 - self.other_mortality**num_years
+        abs_survival_rate = (1 - prob_death_per_year)**num_years
+        ref_survival_rate = (1 - self.other_mortality)**num_years
         rel_survival_rate = abs_survival_rate/ref_survival_rate
 
         return {'abs': abs_survival_rate, 'rel': rel_survival_rate}
@@ -131,7 +131,7 @@ class MIRModel:
         prob_death = excess_mortality + other_mortality
         prob_survival = 1 - prob_death
 
-        val_true = excess_mortality*(1 - prob_survival**(disease_period + 1))
+        val_true = excess_mortality*(1 - prob_survival**disease_period)
         val_expected = deaths/cases*prob_death
 
         return val_true - val_expected

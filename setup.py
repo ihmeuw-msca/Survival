@@ -12,6 +12,5 @@ setup(name='survival',
       packages=find_packages(where='src'),
       install_requires=['numpy',
                         'scipy',
-                        'pandas',
                         'pytest'],
       zip_safe=False)
