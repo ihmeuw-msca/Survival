@@ -31,7 +31,7 @@ And we could create object and do the computation.
    from survival import MIRModel
 
    model = MIRModel(deaths, cases, other_mortality, disease_period=5)
-   model.compute_excess_mortality
+   model.compute_excess_mortality()
    
    survival_rate = model.get_survival_rate(num_years=5)
 
