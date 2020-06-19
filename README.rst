@@ -2,14 +2,16 @@
 Survival Analysis
 =================
 
+
 This repository is created for the applications from cancer team.
+The goal of the program is to infer the survival rate simply from
+mortality incidence ratio of the diease and the background mortality.
 
 
 Install
 -------
 The package require ``python=3.7`` and preliminary packages, Numpy, Scipy,
-and Pytest. If want to run the `examples <https://github.com/ihmeuw-msca/Survival/blob/master/examples>`_
-Pandas, Jupyter and Maplotlib are required.
+and Pytest. If want to run the examples, Pandas, Jupyter and Maplotlib are also required.
 
 To install, simply clone the repository and install,
 
