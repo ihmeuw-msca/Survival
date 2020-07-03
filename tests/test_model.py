@@ -10,12 +10,13 @@ from survival import MIRModel
 num_points = 5
 deaths = np.random.rand(num_points)*100.0 + 1.0
 cases = deaths + np.random.rand(num_points)*1000.0 + 100.0
+mir = deaths/cases
 other_mortality = np.random.rand(num_points)*0.05
 
 
 @pytest.fixture
 def model():
-    return MIRModel(deaths, cases, other_mortality, disease_period=5)
+    return MIRModel(mir, other_mortality, disease_period=5)
 
 
 def test_compute_excess_mortality(model):
@@ -23,8 +24,7 @@ def test_compute_excess_mortality(model):
     assert np.allclose([
         model.mir_equation(model.excess_mortality[i],
                            model.other_mortality[i],
-                           model.deaths[i],
-                           model.cases[i],
+                           model.mir[i],
                            model.disease_period)
         for i in range(model.num_points)
     ], 0.0)

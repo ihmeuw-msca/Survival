@@ -14,29 +14,26 @@ class MIRModel:
     """
 
     def __init__(self,
-                 deaths: np.ndarray,
-                 cases: np.ndarray,
+                 mir: np.ndarray,
                  other_mortality: np.ndarray,
                  disease_period: float = 5):
         """Constructor of MIRModel.
 
         Args:
-            deaths (np.ndarray): Number of deaths for the year
-            cases (np.ndarray): Number of cases for the year.
+            mir (np.ndarray): Mortality and incidence ratio.
             other_mortality (np.ndarray): Probablity of death from other causes.
             disease_period (float, optional):
                 Excess mortality period. Either to be a positive integer or
                 ``np.inf``. Defaults to 5.
         """
         # parse inputs
-        self.deaths = np.asarray(deaths)
-        self.cases = np.asarray(cases)
+        self.mir = np.asarray(mir)
         self.other_mortality = np.asarray(other_mortality)
         if np.isinf(disease_period):
             self.disease_period = disease_period
         else:
             self.disease_period = int(disease_period)
-        self.num_points = self.deaths.size
+        self.num_points = self.mir.size
 
         # assertions for the inputs
         self._check_inputs()
@@ -47,13 +44,8 @@ class MIRModel:
     def _check_inputs(self):
         """Check the inputs for the class.
         """
-        assert self.deaths.size == self.num_points
-        assert (self.deaths >= 0).all()
-
-        assert self.cases.size == self.num_points
-        assert (self.cases >= 0).all()
-
-        assert (self.cases >= self.deaths).all()
+        assert self.mir.size == self.num_points
+        assert ((self.mir >= 0) & (self.mir <= 1)).all()
 
         assert self.other_mortality.size == self.num_points
         assert (self.other_mortality >= 0).all()
@@ -67,20 +59,19 @@ class MIRModel:
         """
         if np.isinf(self.disease_period):
             excess_mortality = self.other_mortality * \
-                self.deaths/(self.cases - self.deaths)
+                self.mir/(1 - self.mir)
             self.excess_mortality = np.maximum(
                 0, np.minimum(1 - self.other_mortality, excess_mortality))
 
         else:
             for i in range(self.num_points):
-                if self.deaths[i]/self.cases[i] >= 1 - self.other_mortality[i]:
+                if self.mir[i] >= 1 - self.other_mortality[i]:
                     self.excess_mortality[i] = 1 - self.other_mortality[i]
                 else:
                     self.excess_mortality[i] = bisect(
                         partial(self.mir_equation,
                                 other_mortality=self.other_mortality[i],
-                                deaths=self.deaths[i],
-                                cases=self.cases[i],
+                                mir=self.mir[i],
                                 disease_period=self.disease_period),
                         0.0, 1.0
                     )
@@ -116,16 +107,14 @@ class MIRModel:
     @staticmethod
     def mir_equation(excess_mortality: float,
                      other_mortality: float,
-                     deaths: float,
-                     cases: float,
+                     mir: float,
                      disease_period: int) -> float:
         """Equation that use MI ratio approximating the excess mortality.
 
         Args:
             excess_mortality (float): Probablity of death from the disease.
             other_mortality (float): Probablity of death from other causes.
-            deaths (float): Number of deaths.
-            cases (float): Number of cases.
+            mir (float): Mortality incidence ratio.
             disease_period (int): Excess mortality period.
 
         Returns:
@@ -135,6 +124,6 @@ class MIRModel:
         prob_survival = 1 - prob_death
 
         val_true = excess_mortality*(1 - prob_survival**disease_period)
-        val_expected = deaths/cases*prob_death
+        val_expected = mir*prob_death
 
         return val_true - val_expected
