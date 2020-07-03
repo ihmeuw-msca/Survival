@@ -23,7 +23,7 @@ To install, simply clone the repository and install,
 
 Example
 -------
-After installation, to use the code, we need data for ``deaths``, ``cases``,
+After installation, to use the code, we need data for ``mir`` (mortality incidence ratio),
 ``other_mortality`` and optional ``disease_period``, for more details, please
 check the `docstring <https://github.com/ihmeuw-msca/Survival/blob/master/src/survival/model.py#L21-L30>`_.
 And we could create object and do the computation.
@@ -32,7 +32,7 @@ And we could create object and do the computation.
 
    from survival import MIRModel
 
-   model = MIRModel(deaths, cases, other_mortality, disease_period=5)
+   model = MIRModel(mir, other_mortality, disease_period=5)
    model.compute_excess_mortality()
    
    survival_rate = model.get_survival_rate(num_years=5)
