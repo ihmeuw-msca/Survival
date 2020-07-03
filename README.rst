@@ -25,7 +25,7 @@ Example
 -------
 After installation, to use the code, we need data for ``mir`` (mortality incidence ratio),
 ``other_mortality`` and optional ``disease_period``, for more details, please
-check the `docstring <https://github.com/ihmeuw-msca/Survival/blob/master/src/survival/model.py#L21-L30>`_.
+check the `docstring <https://github.com/ihmeuw-msca/Survival/blob/master/src/survival/model.py#L20-L28>`_.
 And we could create object and do the computation.
 
 .. code-block:: python
