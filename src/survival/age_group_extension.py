@@ -245,21 +245,23 @@ class AgeSurvivalModel:
         return right_hand_side - mir
 
     ### HELPERS ###
-    def complicated_sigma(n: int, prob_survival: float, P_s_2: float):
-        '''needs a better name but means to solve: \sum_{i=1}**n P_s_2**i(1-prob_survival**{5-i})'''
-        value = 0
-        for i in range(1,n):
-            value = value + P_s_2**i*(1-prob_survival**(5-i))
-        return value
+    def complicated_sigma(self, n: int, prob_survival: float, P_s_2: float):
+            """needs a better name but solves: sum_{i=1}**n P_s_2**i(1-prob_survival**{5-i})"""
+            value = 0
+            for i in range(1,n):
+                value = value + P_s_2**i*(1-prob_survival**(5-i))
+            return value
 
-    def max_mi_ratio_other_age_groups(other_mortality: float, P_s_1: float, P_s_2: float):
+    def max_mi_ratio_other_age_groups(self, other_mortality: float, P_s_1: float, P_s_2: float):
         '''The bound that MI ratio cannot exceed in this monotonically decreasing function of
         survival predicting MIR is P_s = 0. This is solved to be the following.'''
+            
         max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)])+1/5*P_s_1**5*sum([P_s_2**i for i in range(1,4)]))
         return max
 
-    def max_mi_ratio_second_age_group(other_mortality: float, P_s_1: float):
+    def max_mi_ratio_second_age_group(self, other_mortality: float, P_s_1: float):
         '''The bound that MI ratio cannot exceed in this monotonically decreasing function of
         survival predicting MIR is P_s = 0. This is solved to be the following.'''
+            
         max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)]))
         return max
