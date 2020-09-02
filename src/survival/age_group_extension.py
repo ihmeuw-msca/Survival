@@ -23,7 +23,7 @@ class AgeSurvivalModel:
                 inputs: data frame that has the required columns
         """
         required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
-        assert [column for column in required if(ele in self.inputs.columns.tolist())]
+        assert [column for column in required if(column in self.inputs.columns.tolist())]
         #HELP: I think something the syntax in the above is wrong?
 
         self.inputs = pd.DataFrame(inputs[required])
