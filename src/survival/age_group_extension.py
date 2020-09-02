@@ -25,6 +25,11 @@ class AgeSurvivalModel:
         required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
 
         self.inputs = pd.DataFrame(inputs[required])
+
+        #no NAs
+        self.inputs = self.inputs.dropna()
+
+        #length
         self.num_points = len(inputs.axes[0])
 
         assert [column for column in required if(column in self.inputs.columns.tolist())]
@@ -57,8 +62,6 @@ class AgeSurvivalModel:
     def _check_inputs(self):
         """Check the values of the inputs for the class for suitability.
         """
-        #no NAs
-        self.inputs = self.inputs.dropna()
 
         #want other_mortality less than 1, greater than zero
         assert (self.inputs['other_mortality']>=0).all()
