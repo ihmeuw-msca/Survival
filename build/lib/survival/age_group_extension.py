@@ -16,16 +16,14 @@ class AgeSurvivalModel:
     """ Mortality incidence ratio used to approximate age specific survival rate
     """
 
-    def _init_(self, inputs: pd.DataFrame):
+    def __init__(self, inputs: pd.DataFrame):
         """Constructor of the model.
 
             Arguments:
-                age_id (np.ndarray): the list of the corresponding age groups
-                mir (np.ndarray): mortality to incidence ratios for an entire age series
-                other_mortality (np.ndarray): probability of death from other causes for an entire age series
+                inputs: data frame that has the required columns
         """
         required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
-        assert [column for column in required if(ele in self.inputs.columns.tolist())]
+        assert [column for column in required if(column in self.inputs.columns.tolist())]
         #HELP: I think something the syntax in the above is wrong?
 
         self.inputs = pd.DataFrame(inputs[required])
