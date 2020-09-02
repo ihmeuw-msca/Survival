@@ -23,7 +23,7 @@ class AgeSurvivalModel:
                 inputs: data frame that has the required columns
         """
         required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
-        
+
         self.inputs = pd.DataFrame(inputs[required])
         self.num_points = len(inputs.axes[0])
 
@@ -58,7 +58,7 @@ class AgeSurvivalModel:
         """Check the values of the inputs for the class for suitability.
         """
         #no NAs
-        self.inputs.dropna()
+        self.inputs = self.inputs.dropna()
 
         #want other_mortality less than 1, greater than zero
         assert (self.inputs['other_mortality']>=0).all()

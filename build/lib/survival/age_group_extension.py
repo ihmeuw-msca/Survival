@@ -22,10 +22,11 @@ class AgeSurvivalModel:
             Arguments:
                 inputs: data frame that has the required columns
         """
+        required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
+        
         self.inputs = pd.DataFrame(inputs[required])
         self.num_points = len(inputs.axes[0])
 
-        required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
         assert [column for column in required if(column in self.inputs.columns.tolist())]
     
         #check inputs variable values
