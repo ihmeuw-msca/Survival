@@ -20,9 +20,7 @@ class AgeSurvivalModel:
         """Constructor of the model.
 
             Arguments:
-                age_id (np.ndarray): the list of the corresponding age groups
-                mir (np.ndarray): mortality to incidence ratios for an entire age series
-                other_mortality (np.ndarray): probability of death from other causes for an entire age series
+                inputs: data frame that has the required columns
         """
         required = ['age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']
         assert [column for column in required if(ele in self.inputs.columns.tolist())]
