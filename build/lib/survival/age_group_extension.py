@@ -180,20 +180,23 @@ class AgeSurvivalModel:
 
     ### CODING OF EQUATIONS ###
     @staticmethod
-    def first_age_group_equation(other_mortality: float, mir: float, P_c: float):
-        """Equation for the first age group relating MI ratio and survival
+    def first_age_group_equation(other_mortality: float, 
+                                mir: float,
+                                P_c: float):
+    """Equation for the first age group relating MI ratio and survival
 
-        Args: 
-            P_c (float): probability of death in a single year due to cause
-            other_mortality (float): probability of death due to other causes
-            mir (float): mortality incidence ratio
-            
-        Returns:
-                float: value of the difference between the two sides of the equation
-        """
+    Args: 
+        P_c (float): probability of death in a single year due to cause
+        other_mortality (float): probability of death due to other causes
+        mir (float): mortality incidence ratio
+    
+    Returns:
+        float: value of the difference between the two sides of the equation
+    """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)]))
+        right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*simple_sigma(5, P_s))
+        #HELP: is there a clean way to write a summation in python other than a loop
 
         return right_hand_side - mir
 
@@ -202,17 +205,17 @@ class AgeSurvivalModel:
                                 mir: float,
                                 P_c: float,
                                 P_s_1: float):
-        """Equation for the second age group relating MI ratio and survival
+    """Equation for the second age group relating MI ratio and survival
 
-        Args: 
-            P_c (float): probability of death in a single year due to cause
-            other_mortality (float): probability of death due to other causes
-            mir (float): mortality incidence ratio
-            P_s_1 (float): probability of survival of the previous (youngest) age group
-        
-        Returns:
-            float: value of the difference between the two sides of the equation
-        """
+    Args: 
+        P_c (float): probability of death in a single year due to cause
+        other_mortality (float): probability of death due to other causes
+        mir (float): mortality incidence ratio
+        P_s_1 (float): probability of survival of the previous (youngest) age group
+    
+    Returns:
+        float: value of the difference between the two sides of the equation
+    """
         P_s = 1 - (P_c + other_mortality)
 
         right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
@@ -226,18 +229,18 @@ class AgeSurvivalModel:
                                 P_c: float,
                                 P_s_1: float,
                                 P_s_2: float):
-        """Equation for the other age groups relating MI ratio and survival
+    """Equation for the other age groups relating MI ratio and survival
 
-        Args: 
-            P_c (float): probability of death in a single year due to cause
-            other_mortality (float): probability of death due to other causes
-            mir (float): mortality incidence ratio
-            P_s_1 (float): probability of survival of the previous age group
-            P_s_2 (float): probability of survival of the two previous age group
-        
-        Returns:
-            float: value of the difference between the two sides of the equation
-        """
+    Args: 
+        P_c (float): probability of death in a single year due to cause
+        other_mortality (float): probability of death due to other causes
+        mir (float): mortality incidence ratio
+        P_s_1 (float): probability of survival of the previous age group
+        P_s_2 (float): probability of survival of the two previous age group
+    
+    Returns:
+        float: value of the difference between the two sides of the equation
+    """
         P_s = 1 - (P_c + other_mortality)
 
         right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5)+1/5*P_s_1**5*complicated_sigma(4,P_s,P_s_2))
