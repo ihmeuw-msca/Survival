@@ -26,13 +26,13 @@ class AgeSurvivalModel:
 
         self.inputs = pd.DataFrame(inputs[required])
 
+        assert [column for column in required if(column in self.inputs.columns.tolist())]
+
         #no NAs
         self.inputs = self.inputs.dropna()
 
         #length
         self.num_points = len(inputs.axes[0])
-
-        assert [column for column in required if(column in self.inputs.columns.tolist())]
     
         #check inputs variable values
         self._check_inputs()
