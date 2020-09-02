@@ -16,7 +16,7 @@ class AgeSurvivalModel:
     """ Mortality incidence ratio used to approximate age specific survival rate
     """
 
-    def _init_(self, inputs: pd.DataFrame):
+    def __init__(self, inputs: pd.DataFrame):
         """Constructor of the model.
 
             Arguments:
