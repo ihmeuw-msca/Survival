@@ -104,9 +104,11 @@ class AgeSurvivalModel:
         """
         #first age group
         i =0
-        #check to make sure that MIR is within bounds
+    
         print(uid_data.mi_ratio.iat[i])
         print(uid_data.other_mortality.iat[i])
+
+        #check to make sure that MIR is within bounds
         if uid_data.mi_ratio.iat[i] < (1-uid_data.other_mortality.iat[i]):
 
             #solve for P_c (probability of death due to cause)
@@ -188,7 +190,7 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)]))
+        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
 
         return right_hand_side - mir
 
@@ -210,7 +212,7 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
+        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
         
         return right_hand_side - mir
 
@@ -235,7 +237,7 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(P_c + other_mortality)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5)+1/5*P_s_1**5*complicated_sigma(4,P_s,P_s_2))
+        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5)+1/5*P_s_1**5*complicated_sigma(4,P_s,P_s_2))
         
         return right_hand_side - mir
 
