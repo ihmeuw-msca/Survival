@@ -12,6 +12,13 @@ import pandas as pd
 import numpy as np 
 from scipy.optimize import bisect
 
+def complicated_sigma(n: int, prob_survival: float, P_s_2: float):
+    """needs a better name but solves: sum_{i=1}**n P_s_2**i(1-prob_survival**{5-i})"""
+    value = 0
+    for i in range(1,n):  
+        value = value + P_s_2**i*(1-prob_survival**(5-i))
+    return value
+
 class AgeSurvivalModel:
     """ Mortality incidence ratio used to approximate age specific survival rate
     """
@@ -56,8 +63,13 @@ class AgeSurvivalModel:
             uid_data = self.inputs[self.inputs['UID']==uid].copy()
             #sort by age group (ascending)
             uid_data.sort_values(by=['age_group_id'], inplace=True)
+            #import pdb; pdb.set_trace()
+            uid_data.reset_index(inplace=True, drop=True)
             self.input_dfs[uid] = uid_data
 
+    def combine_outputs(self):
+        '''combines the UID data frames'''
+        return pd.concat(list(self.input_dfs.values()),axis=0).reset_index(drop=True)
 
     def _check_inputs(self):
         """Check the values of the inputs for the class for suitability.
@@ -77,8 +89,9 @@ class AgeSurvivalModel:
             self.calculate_survival_second_age_group(data)
 
             #compute remaining age groups
-            for i in range(2,age_id.size()-1):
-                calculate_survival_other_age_group(data, i, i-1, i-2)
+            #import pdb; pdb.set_trace()
+            for i in range(2,len(data.age_group_id)-1):
+                self.calculate_survival_other_age_group(data, i, i-1, i-2)
 
     def compute_n_year_survival(self, num_years: int):
         """Main function for getting the n-year relative and absolute survival.
@@ -87,42 +100,41 @@ class AgeSurvivalModel:
         if num_years < 1:
             raise ValueError(f"Number of years of survival must be greater or"
                              f"equal than 1, was {num_years}.")
+        
+        for uid, data in self.input_dfs.items():
+            #catch to make sure P_s has been calculated
+            if np.isnan(data['P_s']).all():
+                print("Computing survival first.")
+                self.compute_P_s()
 
-        #catch to make sure P_s has been calculated
-        if np.isnan(self.inputs['P_s']).all():
-            print("Computing survival first.")
-            self.compute_P_s()
-
-        #calculate survival directly from P_s
-        for i in range(1,self.num_points):
-            self.inputs.abs_survival[i] = self.inputs.P_s[i]**num_years
-            self.inputs.rel_survival[i] = self.inputs.abs_survival[i]/(1-self.inputs['other_mortality'][i]**num_years)
+            #calculate survival directly from P_s
+            for i in range(1,len(data)):
+                data.loc[i,'abs_survival'] = data.P_s.tolist()[i]**num_years
+                data.loc[i,'rel_survival'] = data.abs_survival.tolist()[i]/(1-data.other_mortality.tolist()[i]**num_years)
 
     ### SOLVE EQUATIONS ###
     def calculate_survival_first_age_group(self, uid_data: pd.DataFrame):
         """The youngest age group (below which there is assumed to be no incidence).
         """
         #first age group
-        i =0
-    
-        print(uid_data.mi_ratio.iat[i])
-        print(uid_data.other_mortality.iat[i])
+        i=0
 
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio.iat[i] < (1-uid_data.other_mortality.iat[i]):
-
+        if uid_data.mi_ratio.tolist()[i] < (1-uid_data.other_mortality.tolist()[i]):
+            
+            #import pdb; pdb.set_trace()
             #solve for P_c (probability of death due to cause)
-            uid_data.P_c.iat[i] = bisect(
+            uid_data.loc[i,'P_c'] = bisect(
                     partial(self.first_age_group_equation, 
-                    other_mortality=uid_data.other_mortality.iat[i],
-                    mir=uid_data.mi_ratio.iat[i]), 0.0, 1.0)
+                    other_mortality=uid_data.other_mortality.tolist()[i],
+                    mir=uid_data.mi_ratio.tolist()[i]), 0.0, 1.0)
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
+            uid_data.loc[i,'P_c']  = 1 - uid_data.other_mortality.tolist()[i]
 
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
+        uid_data.loc[i,'P_s']  = 1 - (uid_data.P_c.tolist()[i] + uid_data.other_mortality.tolist()[i])
 
     def calculate_survival_second_age_group(self, uid_data: pd.DataFrame):
         """The second youngest age group.
@@ -132,22 +144,22 @@ class AgeSurvivalModel:
         j = 0
         
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio.iat[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality.iat[i],
-                                                                uid_data.P_s.iat[j]):
+        the_max = self.max_mi_ratio_second_age_group(uid_data.other_mortality.tolist()[i], uid_data.P_s.tolist()[j])
+        if uid_data.mi_ratio.tolist()[i] < the_max:
             #solve for P_c (probability of death due to cause)
-            uid_data.P_c[i] = bisect(
+            uid_data.loc[i,'P_c']  = bisect(
                     partial(self.second_age_group_equation, 
-                    other_mortality=uid_data.other_mortality.iat[i],
-                    mir=uid_data.mi_ratio.iat[i],
-                    P_s_1=uid_data.P_s.iat[j]), 0.0, 1.0
+                    other_mortality=uid_data.other_mortality.tolist()[i],
+                    mir=uid_data.mi_ratio.tolist()[i],
+                    P_s_1=uid_data.P_s.tolist()[j]), 0.0, 1.0
                 )
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
+            uid_data.loc[i,'P_c']  = 1 - uid_data.other_mortality.tolist()[i]
 
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
+        uid_data.loc[i,'P_s']  = 1 - (uid_data.P_c.tolist()[i] + uid_data.other_mortality.tolist()[i])
 
     def calculate_survival_other_age_group(self, 
                                             uid_data: pd.DataFrame, 
@@ -158,26 +170,27 @@ class AgeSurvivalModel:
         """
         
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio.iat[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality.iat[i],
-                                                                uid_data.P_s.iat[j],uid_data.P_s.iat[k]):
+        the_max = self.max_mi_ratio_other_age_groups(uid_data.other_mortality.tolist()[i],
+                                                                uid_data.P_s.tolist()[j],uid_data.P_s.tolist()[k])
+        if uid_data.mi_ratio.tolist()[i] < the_max:
             #solve for P_c (probability of death due to cause)
-            uid_data.P_c.iat[i] = bisect(
+            uid_data.loc[i,'P_c']  = bisect(
                     partial(self.other_age_group_equation, 
-                    other_mortality=uid_data.other_mortality.iat[i],
-                    mir=uid_data.mi_ratio.iat[i],
-                    P_s_1=uid_data.P_s.iat[j], P_s_2=uid_data.P_s.iat[k]), 0.0, 1.0
+                    other_mortality=uid_data.other_mortality.tolist()[i],
+                    mir=uid_data.mi_ratio.tolist()[i],
+                    P_s_1=uid_data.P_s.tolist()[j], P_s_2=uid_data.P_s.tolist()[k]), 0.0, 1.0
                 )
 
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
+            uid_data.loc[i,'P_c']  = 1 - uid_data.other_mortality.tolist()[i]
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
+        uid_data.loc[i,'P_s'] = 1 - (uid_data.P_c.tolist()[i] + uid_data.other_mortality.tolist()[i])
 
     ### CODING OF EQUATIONS ###
     @staticmethod
-    def first_age_group_equation(other_mortality: float, mir: float, P_c: float):
+    def first_age_group_equation(P_c: float, other_mortality: float, mir: float):
         """Equation for the first age group relating MI ratio and survival
 
         Args: 
@@ -195,9 +208,8 @@ class AgeSurvivalModel:
         return right_hand_side - mir
 
     @staticmethod
-    def second_age_group_equation(other_mortality: float, 
+    def second_age_group_equation(P_c: float, other_mortality: float, 
                                 mir: float,
-                                P_c: float,
                                 P_s_1: float):
         """Equation for the second age group relating MI ratio and survival
 
@@ -216,11 +228,9 @@ class AgeSurvivalModel:
         
         return right_hand_side - mir
 
-    
     @staticmethod
-    def other_age_group_equation(other_mortality: float, 
+    def other_age_group_equation(P_c: float, other_mortality: float, 
                                 mir: float,
-                                P_c: float,
                                 P_s_1: float,
                                 P_s_2: float):
         """Equation for the other age groups relating MI ratio and survival
@@ -242,23 +252,18 @@ class AgeSurvivalModel:
         return right_hand_side - mir
 
     ### HELPERS ###
-    def complicated_sigma(self, n: int, prob_survival: float, P_s_2: float):
-            """needs a better name but solves: sum_{i=1}**n P_s_2**i(1-prob_survival**{5-i})"""
-            value = 0
-            for i in range(1,n):
-                value = value + P_s_2**i*(1-prob_survival**(5-i))
-            return value
-
-    def max_mi_ratio_other_age_groups(self, other_mortality: float, P_s_1: float, P_s_2: float):
+    @staticmethod
+    def max_mi_ratio_other_age_groups(other_mortality: float, P_s_1: float, P_s_2: float):
         '''The bound that MI ratio cannot exceed in this monotonically decreasing function of
         survival predicting MIR is P_s = 0. This is solved to be the following.'''
             
-        max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)])+1/5*P_s_1**5*sum([P_s_2**i for i in range(1,4)]))
-        return max
+        the_max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)])+1/5*P_s_1**5*sum([P_s_2**i for i in range(1,4)]))
+        return the_max
 
-    def max_mi_ratio_second_age_group(self, other_mortality: float, P_s_1: float):
+    @staticmethod
+    def max_mi_ratio_second_age_group(other_mortality: float, P_s_1: float):
         '''The bound that MI ratio cannot exceed in this monotonically decreasing function of
         survival predicting MIR is P_s = 0. This is solved to be the following.'''
             
-        max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)]))
-        return max
+        the_max = (1 - other_mortality)*(1+1/5*sum([P_s_1**i for i in range(1,5)]))
+        return the_max
