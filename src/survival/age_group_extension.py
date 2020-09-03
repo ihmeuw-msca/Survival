@@ -32,7 +32,7 @@ class AgeSurvivalModel:
         self.inputs = self.inputs.dropna()
 
         #length
-        self.num_points = len(inputs)
+        self.num_points = len(self.inputs)
     
         #check inputs variable values
         self._check_inputs()
@@ -44,16 +44,16 @@ class AgeSurvivalModel:
         self.inputs['rel_survival'] = np.full(self.num_points, np.nan)
 
         #create UID column on location-year-sex-cause
-        self.inputs['UID'] = str(self.inputs['location_id']+
-                                str(self.inputs['year_id'])+
-                                str(self.inputs['sex_id'])+
-                                self.inputs['acause'])
+        self.inputs['UID'] = self.inputs.apply(
+                            lambda row: f"{row['location_id']} {row['year_id']} {row['sex_id']} {row['acause']}", axis=1
+                            )
+        #self.inputs['UID'] = str(self.inputs['location_id'])+str(self.inputs['year_id'])+str(self.inputs['sex_id'])+str(self.inputs['acause'])
 
         #create df dictionaries
         self.input_dfs = dict()
         
         for uid in self.inputs['UID'].unique():
-            uid_data = self.inputs[inputs['UID'] == uid].copy()
+            uid_data = self.inputs[self.inputs['UID']==uid].copy()
             #sort by age group (ascending)
             uid_data.sort_values(by=['age_group_id'], inplace=True)
             self.input_dfs[uid] = uid_data
@@ -73,15 +73,12 @@ class AgeSurvivalModel:
         """
         for uid, data in self.input_dfs.items():
             #compute base case age groups
-            self.calculate_survival_first_age_group(data, self.data.age_group_id.iloc[0])
-            self.calculate_survival_second_age_group(data, self.data.age_group_id.iloc[1],self.data.age_group_id.iloc[0])
+            self.calculate_survival_first_age_group(data)
+            self.calculate_survival_second_age_group(data)
 
             #compute remaining age groups
             for i in range(2,age_id.size()-1):
-                calculate_survival_other_age_group(data,
-                                                    self.data.age_group_id.iloc[i],
-                                                    self.data.age_group_id.iloc[i-1],
-                                                    self.data.age_group_id.iloc[i-2])
+                calculate_survival_other_age_group(data, i, i-1, i-2)
 
     def compute_n_year_survival(self, num_years: int):
         """Main function for getting the n-year relative and absolute survival.
@@ -102,82 +99,79 @@ class AgeSurvivalModel:
             self.inputs.rel_survival[i] = self.inputs.abs_survival[i]/(1-self.inputs['other_mortality'][i]**num_years)
 
     ### SOLVE EQUATIONS ###
-    def calculate_survival_first_age_group(self, uid_data: pd.DataFrame, age_id: int):
+    def calculate_survival_first_age_group(self, uid_data: pd.DataFrame):
         """The youngest age group (below which there is assumed to be no incidence).
         """
-        #find first age group position
-        i = np.where(uid_data.age_group_id==age_id)
-        
+        #first age group
+        i =0
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio[i] < (1-uid_data.other_mortality[i]):
+        print(uid_data.mi_ratio.iat[i])
+        print(uid_data.other_mortality.iat[i])
+        if uid_data.mi_ratio.iat[i] < (1-uid_data.other_mortality.iat[i]):
 
             #solve for P_c (probability of death due to cause)
-            uid_data.P_c[i] = bisect(
+            uid_data.P_c.iat[i] = bisect(
                     partial(self.first_age_group_equation, 
-                    other_mortality=uid_data.other_mortality[i],
-                    mir=uid_data.mir[i]), 0.0, 1.0)
+                    other_mortality=uid_data.other_mortality.iat[i],
+                    mir=uid_data.mi_ratio.iat[i]), 0.0, 1.0)
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c[i] = 1 - uid_data.other_mortality
+            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
 
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s[i] = 1 - (uid_data.P_c[i] + uid_data.other_mortality[i])
+        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
 
-    def calculate_survival_second_age_group(self, uid_data: pd.DataFrame, age_id: int, prev_age_id: int):
+    def calculate_survival_second_age_group(self, uid_data: pd.DataFrame):
         """The second youngest age group.
         """
-         #find first and second age group positions
-        i = np.where(uid_data.age_group_id==age_id)
-        j = np.where(uid_data.age_group_id==prev_age_id)
+        #first and second age group positions
+        i = 1
+        j = 0
         
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality[i],
-                                                                uid_data.P_s[j]):
+        if uid_data.mi_ratio.iat[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality.iat[i],
+                                                                uid_data.P_s.iat[j]):
             #solve for P_c (probability of death due to cause)
             uid_data.P_c[i] = bisect(
                     partial(self.second_age_group_equation, 
-                    other_mortality=uid_data.other_mortality[i],
-                    mir=uid_data.mir[i],
-                    P_s_1=uid_data.P_s[j]), 0.0, 1.0
+                    other_mortality=uid_data.other_mortality.iat[i],
+                    mir=uid_data.mi_ratio.iat[i],
+                    P_s_1=uid_data.P_s.iat[j]), 0.0, 1.0
                 )
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c[i] = 1 - uid_data.other_mortality
+            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
 
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s[i] = 1 - (uid_data.P_c[i] + uid_data.other_mortality[i])
+        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
 
     def calculate_survival_other_age_group(self, 
                                             uid_data: pd.DataFrame, 
-                                            age_id: int, 
-                                            prev_age_id: int, 
-                                            prev_prev_age_id: int):
+                                            i: int, 
+                                            j: int, 
+                                            k: int):
         """Any other age group.
         """
-         #find reference and two previous age group positions
-        i = np.where(uid_data.age_group_id==age_id)
-        j = np.where(uid_data.age_group_id==prev_age_id)
-        k = np.where(uid_data.age_group_id==prev_prev_age_id)
         
         #check to make sure that MIR is within bounds
-        if uid_data.mi_ratio[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality[i],
-                                                                uid_data.P_s[j],uid_data.P_s[k]):
+        if uid_data.mi_ratio.iat[i] < max_mi_ratio_other_age_groups(uid_data.other_mortality.iat[i],
+                                                                uid_data.P_s.iat[j],uid_data.P_s.iat[k]):
             #solve for P_c (probability of death due to cause)
-            uid_data.P_c[i] = bisect(
+            uid_data.P_c.iat[i] = bisect(
                     partial(self.other_age_group_equation, 
-                    other_mortality=uid_data.other_mortality[i],
-                    mir=uid_data.mir[i],
-                    P_s_1=uid_data.P_s[j], P_s_2=uid_data.P_s[k]), 0.0, 1.0
+                    other_mortality=uid_data.other_mortality.iat[i],
+                    mir=uid_data.mi_ratio.iat[i],
+                    P_s_1=uid_data.P_s.iat[j], P_s_2=uid_data.P_s.iat[k]), 0.0, 1.0
                 )
 
         else:
             #MIR is too large to properly solve (survival will go negative) assign survival of 0
-            uid_data.P_c[i] = 1 - uid_data.other_mortality
+            uid_data.P_c.iat[i] = 1 - uid_data.other_mortality.iat[i]
 
         #solve for P_s (probability of abs survival in 1 year)
-        uid_data.P_s[i] = 1 - (uid_data.P_c[i] + uid_data.other_mortality[i])
+        uid_data.P_s.iat[i] = 1 - (uid_data.P_c.iat[i] + uid_data.other_mortality.iat[i])
 
     ### CODING OF EQUATIONS ###
     @staticmethod
