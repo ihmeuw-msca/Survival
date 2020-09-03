@@ -90,7 +90,7 @@ class AgeSurvivalModel:
 
             #compute remaining age groups
             #import pdb; pdb.set_trace()
-            for i in range(2,len(data.age_group_id)-1):
+            for i in range(2,len(data.age_group_id)):
                 self.calculate_survival_other_age_group(data, i, i-1, i-2)
 
     def compute_n_year_survival(self, num_years: int):
@@ -108,7 +108,7 @@ class AgeSurvivalModel:
                 self.compute_P_s()
 
             #calculate survival directly from P_s
-            for i in range(1,len(data)):
+            for i in range(0,len(data)):
                 data.loc[i,'abs_survival'] = data.P_s.tolist()[i]**num_years
                 data.loc[i,'rel_survival'] = data.abs_survival.tolist()[i]/(1-data.other_mortality.tolist()[i]**num_years)
 
