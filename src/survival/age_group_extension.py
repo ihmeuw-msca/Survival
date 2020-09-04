@@ -110,7 +110,7 @@ class AgeSurvivalModel:
             #calculate survival directly from P_s
             for i in range(0,len(data)):
                 data.loc[i,'abs_survival'] = data.P_s.tolist()[i]**num_years
-                data.loc[i,'rel_survival'] = data.abs_survival.tolist()[i]/(1-data.other_mortality.tolist()[i]**num_years)
+                data.loc[i,'rel_survival'] = data.abs_survival.tolist()[i]/(1-data.other_mortality.tolist()[i])**num_years
 
     ### SOLVE EQUATIONS ###
     def calculate_survival_first_age_group(self, uid_data: pd.DataFrame):
