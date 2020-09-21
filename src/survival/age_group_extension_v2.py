@@ -1,7 +1,7 @@
 ##################################################
 # Author: Franny Dean
-# Purpose: Age group extension to survival model
-# Date: 9/1/2020
+# Purpose: Age group extension to survival model v2
+# Date: 9/21/2020
 #
 ##################################################
 
@@ -11,13 +11,6 @@ from functools import partial
 import pandas as pd
 import numpy as np 
 from scipy.optimize import bisect
-
-def complicated_sigma(n: int, prob_survival: float, P_s_2: float):
-    """needs a better name but solves: sum_{i=1}**n P_s_2**i(1-prob_survival**{5-i})"""
-    value = 0
-    for i in range(1,n):  
-        value = value + P_s_2**i*(1-prob_survival**(5-i))
-    return value
 
 class AgeSurvivalModel:
     """ Mortality incidence ratio used to approximate age specific survival rate

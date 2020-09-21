@@ -98,8 +98,8 @@ class AgeSurvivalModel:
         """
         #validate input years of survival
         if num_years < 1:
-            raise ValueError(f"Number of years of survival must be greater or"
-                             f"equal than 1, was {num_years}.")
+            raise ValueError(f"Number of years of survival must be greater than or"
+                             f"equal to 1, was {num_years}.")
         
         for uid, data in self.input_dfs.items():
             #catch to make sure P_s has been calculated
@@ -203,8 +203,11 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
-
+        #right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
+        # try: right_hand_side = P_c/(1-P_s)*(1-P_s**5)
+        #9/21/2020 remove P_c/(1-P_s)* from original
+        right_hand_side = (1-1/5*sum([P_s**i for i in range(1,5)]))
+        
         return right_hand_side - mir
 
     @staticmethod
@@ -224,7 +227,8 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
+        #9/21/2020 removed P_c/(1-P_s)*
+        right_hand_side = (1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
         
         return right_hand_side - mir
 
@@ -247,7 +251,8 @@ class AgeSurvivalModel:
         """
         P_s = 1 - (P_c + other_mortality)
 
-        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5)+1/5*P_s_1**5*complicated_sigma(4,P_s,P_s_2))
+        #9/21/2020 removed P_c/(1-P_s)*
+        right_hand_side = (1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5)+1/5*P_s_1**5*complicated_sigma(4,P_s,P_s_2))
         
         return right_hand_side - mir
 
