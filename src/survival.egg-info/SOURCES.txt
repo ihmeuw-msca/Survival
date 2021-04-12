@@ -2,6 +2,7 @@ README.rst
 setup.py
 src/survival/__init__.py
 src/survival/age_group_extension.py
+src/survival/age_group_extension_v2.py
 src/survival/model.py
 src/survival.egg-info/PKG-INFO
 src/survival.egg-info/SOURCES.txt

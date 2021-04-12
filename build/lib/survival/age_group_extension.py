@@ -25,7 +25,6 @@ class AgeSurvivalModel:
 
     def __init__(self, inputs: pd.DataFrame):
         """Constructor of the model.
-
             Arguments:
                 inputs: data frame that has the required columns
         """
@@ -77,13 +76,14 @@ class AgeSurvivalModel:
 
         #want other_mortality less than 1, greater than zero
         assert (self.inputs['other_mortality']>=0).all()
-        assert (self.inputs['other_mortality']<1).all()
+        assert (self.inputs['other_mortality']<=1).all()
 
     def compute_P_s(self):
         """Main function which computes the probablity of survival P_s for each
             age group in sequence.
         """
         for uid, data in self.input_dfs.items():
+            print(uid)
             #compute base case age groups
             self.calculate_survival_first_age_group(data)
             self.calculate_survival_second_age_group(data)
@@ -98,8 +98,8 @@ class AgeSurvivalModel:
         """
         #validate input years of survival
         if num_years < 1:
-            raise ValueError(f"Number of years of survival must be greater than or"
-                             f"equal to 1, was {num_years}.")
+            raise ValueError(f"Number of years of survival must be greater or"
+                             f"equal than 1, was {num_years}.")
         
         for uid, data in self.input_dfs.items():
             #catch to make sure P_s has been calculated
@@ -192,7 +192,6 @@ class AgeSurvivalModel:
     @staticmethod
     def first_age_group_equation(P_c: float, other_mortality: float, mir: float):
         """Equation for the first age group relating MI ratio and survival
-
         Args: 
             P_c (float): probability of death in a single year due to cause
             other_mortality (float): probability of death due to other causes
@@ -202,10 +201,11 @@ class AgeSurvivalModel:
                 float: value of the difference between the two sides of the equation
         """
         P_s = 1 - (P_c + other_mortality)
-
-        #right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
-        # try:
-        right_hand_side = P_c/(1-P_s)*(1-P_s**5)
+        if(P_s==1):
+            print(other_mortality)
+            print(P_c)
+ 
+        right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
 
         return right_hand_side - mir
 
@@ -214,7 +214,6 @@ class AgeSurvivalModel:
                                 mir: float,
                                 P_s_1: float):
         """Equation for the second age group relating MI ratio and survival
-
         Args: 
             P_c (float): probability of death in a single year due to cause
             other_mortality (float): probability of death due to other causes
@@ -225,6 +224,9 @@ class AgeSurvivalModel:
             float: value of the difference between the two sides of the equation
         """
         P_s = 1 - (P_c + other_mortality)
+        if(P_s==1):
+            print(other_mortality)
+            print(P_c)
 
         right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
         
@@ -236,7 +238,6 @@ class AgeSurvivalModel:
                                 P_s_1: float,
                                 P_s_2: float):
         """Equation for the other age groups relating MI ratio and survival
-
         Args: 
             P_c (float): probability of death in a single year due to cause
             other_mortality (float): probability of death due to other causes
