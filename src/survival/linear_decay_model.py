@@ -12,7 +12,7 @@ import numpy as np
 from scipy.optimize import bisect
 
 
-class MIRModel:
+class DecayMIRModel:
     """Mortality incidence ratio model to approximate the survival rate. This model
        assumes that i, other_mortality are constant over time, and that probability of 
        death due to cancer decays exponentially. 
