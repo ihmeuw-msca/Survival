@@ -123,7 +123,7 @@ class DecayMIRModel:
                             mir=self.mir[i],
                             disease_period=self.disease_period[i],
                             slope=self.slope[i]),
-                    0.0, 1.0
+                    0.0, 2.0
                 )
         
     def get_survival_rate(self,
