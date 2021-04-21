@@ -76,14 +76,14 @@ class AgeSurvivalModel:
 
         #want other_mortality less than 1, greater than zero
         assert (self.inputs['other_mortality']>=0).all()
-        assert (self.inputs['other_mortality']<=1).all()
+        assert (self.inputs['other_mortality']<1).all()
 
     def compute_P_s(self):
         """Main function which computes the probablity of survival P_s for each
             age group in sequence.
         """
         for uid, data in self.input_dfs.items():
-            print(uid)
+            #print(uid)
             #compute base case age groups
             self.calculate_survival_first_age_group(data)
             self.calculate_survival_second_age_group(data)
@@ -201,9 +201,9 @@ class AgeSurvivalModel:
                 float: value of the difference between the two sides of the equation
         """
         P_s = 1 - (P_c + other_mortality)
-        if(P_s==1):
-            print(other_mortality)
-            print(P_c)
+        #if(P_s==1):
+            #print(other_mortality)
+            #print(P_c)
  
         right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)]))
 
@@ -224,9 +224,9 @@ class AgeSurvivalModel:
             float: value of the difference between the two sides of the equation
         """
         P_s = 1 - (P_c + other_mortality)
-        if(P_s==1):
-            print(other_mortality)
-            print(P_c)
+        #if(P_s==1):
+            #print(other_mortality)
+            #print(P_c)
 
         right_hand_side = P_c/(1-P_s)*(1-1/5*sum([P_s**i for i in range(1,5)])+1/5*sum([P_s_1**i for i in range(1,5)])*(1-P_s**5))
         
