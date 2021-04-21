@@ -41,7 +41,7 @@ For more detailed examples please check `examples <https://github.com/ihmeuw-msc
 
 Age Extension Model Example
 -------
-The GBD study is interested in predicting cancer burden in five year age bins. The age group extension model incorporates the fact that individuals who are diagnosed in one age group may die in another. In the model, the first age group uses the base MIR model to obtain an estimate of survival. The next oldest age groups incorporates survivors from the youngest age group. Older age groups use include the survival of the two previous age groups. A period of 10 years of excess mortality is assumed. The derivation of the model has been written up `here <https://www.overleaf.com/read/hxfwhvsmmtnb>`_.
+The GBD study is interested in predicting cancer burden in five year age bins. The age group extension model incorporates the fact that individuals who are diagnosed in one age group may die in another. In the model, the first age group uses the base MIR model to obtain an estimate of survival. The next oldest age groups incorporates survivors from the youngest age group. Older age groups use include the survival of the two previous age groups. A period of 10 years of excess mortality is assumed. The derivation of the model has been written up `here <https://www.overleaf.com/read/dprsqnpwvtxz>`_.
 
 To use the code, we need a data frame with the following columns as listed `here <https://github.com/ihmeuw-msca/Survival/blob/48a072a19544babfa204c443fccaa37d2babbc77/src/survival/age_group_extension.py#L31>`_.
 
@@ -60,4 +60,4 @@ To use the code, we need a data frame with the following columns as listed `here
    
 The result ``df_outputs`` is the 5 year relative and absolute survival estimates from the model appended to the input data frame.
 
-For more detailed jupyter notebook example uses please check `examples <https://github.com/ihmeuw-msca/Survival/blob/48a072a19544babfa204c443fccaa37d2babbc77/Running%20Age%20Group%20Extension.ipynb>`_.
+For more detailed jupyter notebook example uses please check `examples <https://github.com/ihmeuw-msca/Survival/blob/c0e4ee4e8b3547bbee3937b54a27e9a440d5e7a5/examples/notebooks/Running%20Age%20Group%20Extension.ipynb>`_.
