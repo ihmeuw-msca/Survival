@@ -41,9 +41,9 @@ For more detailed examples please check `examples <https://github.com/ihmeuw-msc
 
 Age Extension Model Example
 -------
-The GBD study is interested in predicting cancer burden in five year age bins. The age group extension model incorporates the fact that individuals who are diagnosed in one age group may die in another. In the model, the first age group uses the base MIR model to obtain an estimate of survival. The next oldest age groups incorporates survivors from the youngest age group. Older age groups use include the survival of the two previous age groups. A period of 10 years of excess mortality is assumed. The derivation of the model has been written up `_here <https://www.overleaf.com/read/hxfwhvsmmtnb>_`_. 
+The GBD study is interested in predicting cancer burden in five year age bins. The age group extension model incorporates the fact that individuals who are diagnosed in one age group may die in another. In the model, the first age group uses the base MIR model to obtain an estimate of survival. The next oldest age groups incorporates survivors from the youngest age group. Older age groups use include the survival of the two previous age groups. A period of 10 years of excess mortality is assumed. The derivation of the model has been written up `here <https://www.overleaf.com/read/hxfwhvsmmtnb>`_.
 
-To use the code, we need a data frame with the following columns as listed `_here<https://github.com/ihmeuw-msca/Survival/blob/48a072a19544babfa204c443fccaa37d2babbc77/src/survival/age_group_extension.py#L31>_`_:
+To use the code, we need a data frame with the following columns as listed `here <https://github.com/ihmeuw-msca/Survival/blob/48a072a19544babfa204c443fccaa37d2babbc77/src/survival/age_group_extension.py#L31`_:
 
 ``[age_group_id','location_id','other_mortality','sex_id','acause','year_id','mi_ratio']``
 
