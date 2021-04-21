@@ -76,7 +76,7 @@ class AgeSurvivalModel:
 
         #want other_mortality less than 1, greater than zero
         assert (self.inputs['other_mortality']>=0).all()
-        assert (self.inputs['other_mortality']<=1).all()
+        assert (self.inputs['other_mortality']<1).all()
 
     def compute_P_s(self):
         """Main function which computes the probablity of survival P_s for each
