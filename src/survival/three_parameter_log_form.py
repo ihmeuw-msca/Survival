@@ -151,7 +151,7 @@ class LogFormMIRModel:
                                                        self.c[i],
                                                        num_years, 
                                                        self.other_mortality[i])
-            # Net survival.
+            # "Net" survival.
             for t in range(1, num_years):
                 rel_survival_rate[i] *= (1 - P_c(self.a[i], self.b[i], self.c[i], t))
         
