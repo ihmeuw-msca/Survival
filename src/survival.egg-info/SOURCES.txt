@@ -4,6 +4,7 @@ src/survival/__init__.py
 src/survival/age_group_extension.py
 src/survival/linear_decay_model.py
 src/survival/model.py
+src/survival/three_parameter_log_form.py
 src/survival.egg-info/PKG-INFO
 src/survival.egg-info/SOURCES.txt
 src/survival.egg-info/dependency_links.txt
