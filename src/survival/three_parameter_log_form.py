@@ -152,9 +152,10 @@ class LogFormMIRModel:
                                                        self.c[i],
                                                        num_years, 
                                                        self.other_mortality[i])
+            rel_survival_rate[i] = abs_survival_rate[i]/((1-self.other_mortality[i])**num_years)
             # "Net" survival.
-            for t in range(1, num_years):
-                rel_survival_rate[i] *= (1 - P_c(self.a[i], self.b[i], self.c[i], t))
+            #for t in range(1, num_years):
+            #    rel_survival_rate[i] *= (1 - P_c(self.a[i], self.b[i], self.c[i], t))
         
         
         return {'abs': abs_survival_rate, 'rel': rel_survival_rate}
