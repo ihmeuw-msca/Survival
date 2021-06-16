@@ -1,7 +1,7 @@
 ####################################################################
 # Author: Franny Dean
 # Purpose: Model incorporating assumption that log(P_c) follows b*log(1+exp(a-x))+c
-# Date: June 3, 2021
+# Date: June 15, 2021
 #
 ####################################################################
 
@@ -34,7 +34,7 @@ def cumulative_survival(a: float,
         """
         
         value = 1
-        for i in range(1,year):
+        for i in range(0,year):
             
             value *= (1 - P_c(a, b, c, i) - other_mortality)
         
@@ -68,19 +68,22 @@ class LogFormMIRModel:
                  mir: np.ndarray,
                  other_mortality: np.ndarray,
                  a: np.ndarray,
-                 b: np.ndarray):
+                 b: np.ndarray,
+                 n: np.ndarray):
         """Constructor of MIRModel.
 
         Args:
             mir (np.ndarray): Mortality and incidence ratio.
             other_mortality (np.ndarray): Probablity of death from other causes.
             a, b (np.ndarrays): parameters associated with the functional form for log probability of death
+            n (np.ndarray): the period of excess mortality to sum over
         """
         # parse inputs
         self.mir = np.asarray(mir)
         self.other_mortality = np.asarray(other_mortality)
         self.a = np.asarray(a)
         self.b = np.asarray(b)
+        self.n = np.asarray(n)
         self.num_points = self.mir.size
         
         # assertions for the inputs
@@ -103,26 +106,28 @@ class LogFormMIRModel:
 
         assert self.a.size == self.num_points
         assert self.b.size == self.num_points
+        assert self.n.size == self.num_points
         
     def compute_third_parameter(self):
         """Compute the base probability of death from the disease in year of diagnosis (P_c(0)).
         """
 
         for i in range(self.num_points):
-            
-            if self.mir[i] >= 1 - self.other_mortality[i]:
-                # this might be wrong?
-                self.c[i] = scipy.logit(1 - self.other_mortality[i])-self.b[i]*math.log(1+math.exp(self.a[i]))
-            else:
+
+            if self.mir[i]>=1 - self.other_mortality[i]:
+                # edge case where P_s(0)=0
+                self.c[i] = scipy.logit(1 - self.other_mortality[i]) + self.b[i]*math.log(1+math.exp(self.a[i]))
+            else: 
                 self.c[i] = bisect(    
                     partial(self.mir_equation,
                             other_mortality=self.other_mortality[i],
                             mir=self.mir[i],
                             a=self.a[i],
-                            b=self.b[i]),
-                    -10.0, 0.0
+                            b=self.b[i],
+                            n=self.n[i]),
+                    -100.0, 100.0
                 )
-        
+            
     def get_survival_rate(self,
                           num_years: int) -> Dict[str, np.ndarray]:
         """Absolute survival rate.
@@ -167,7 +172,8 @@ class LogFormMIRModel:
                      other_mortality: float,
                      mir: float,
                      a: float,
-                     b: float) -> float:
+                     b: float,
+                     n: int) -> float:
         """Equation that use MI ratio approximating the excess mortality (P_c).
 
         Args:
@@ -177,10 +183,10 @@ class LogFormMIRModel:
         Returns:
             float: Value of the difference between the expected and the truth.
         """
-        val_true = 0
+        val_true = P_c(a, b, c, 0)
         
         
-        for year in range(1, 16):
+        for year in range(1, n+1):
             cum_survival = cumulative_survival(a, b, c, year, other_mortality)
             val_true += P_c(a, b, c, year)*cum_survival
      
