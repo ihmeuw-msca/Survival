@@ -111,7 +111,7 @@ class LogFormMIRModel:
     def compute_third_parameter(self):
         """Compute the base probability of death from the disease in year of diagnosis (P_c(0)).
         """
-
+        
         for i in range(self.num_points):
 
             if self.mir[i]>=1 - self.other_mortality[i]:
@@ -128,9 +128,9 @@ class LogFormMIRModel:
                     -100.0, 100.0
                 )
             
-    def get_survival_rate(self,
+    def get_survival_rates(self,
                           num_years: int) -> Dict[str, np.ndarray]:
-        """Absolute survival rate.
+        """Absolute, relative, net survival rates.
 
         Args:
             num_years: Number of years for the survival rate.
@@ -139,7 +139,7 @@ class LogFormMIRModel:
             Dict[str, np.ndarray]:
                 Calculate the absolute and relative survival rate from MI ratio,
                 and return them in a dictionary, with key ``'abs'`` for the
-                absolute and key ``'rel'`` for the relative.
+                absolute, key ``'rel'`` for the relative, and key ``'net'`` for net.
         """
         if num_years < 1:
             raise ValueError(f"Number of years of survival must be greater or"
@@ -151,6 +151,8 @@ class LogFormMIRModel:
 
         abs_survival_rate = [1]*self.num_points
         rel_survival_rate = [1]*self.num_points
+        net_survival_rate = [1]*self.num_points
+
         for i in range(self.num_points):
             abs_survival_rate[i] = cumulative_survival(self.a[i], 
                                                        self.b[i], 
@@ -158,12 +160,11 @@ class LogFormMIRModel:
                                                        num_years, 
                                                        self.other_mortality[i])
             rel_survival_rate[i] = abs_survival_rate[i]/((1-self.other_mortality[i])**num_years)
-            # "Net" survival.
-            #for t in range(1, num_years):
-            #    rel_survival_rate[i] *= (1 - P_c(self.a[i], self.b[i], self.c[i], t))
+            
+            for t in range(0, num_years):
+                net_survival_rate[i] *= (1 - P_c(self.a[i], self.b[i], self.c[i], t))
         
-        
-        return {'abs': abs_survival_rate, 'rel': rel_survival_rate}
+        return {'abs': abs_survival_rate, 'rel': rel_survival_rate, 'net': net_survival_rate}
     
     
     
